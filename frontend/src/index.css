@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
+body {
+  @apply bg-canteen-dark text-white font-body;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(15, 52, 96, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(230, 92, 0, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(15, 52, 96, 0.1) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* ── Custom scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { @apply bg-canteen-dark; }
+::-webkit-scrollbar-thumb  { @apply bg-canteen-primary/60 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-canteen-primary; }
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(230, 92, 0, 0.3);
+  color: #fff;
+}
+
+/* ── Reusable component classes ───────────────────────────────────────────── */
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-canteen-primary to-orange-500 hover:from-orange-600 hover:to-canteen-primary
+           text-white font-semibold px-5 py-2.5 rounded-xl
+           transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
+           active:scale-95 shadow-glow-sm hover:shadow-glow-md;
+  }
+
+  .btn-secondary {
+    @apply border border-canteen-primary/60 text-canteen-primary hover:bg-canteen-primary/10
+           font-semibold px-5 py-2.5 rounded-xl transition-all duration-300
+           hover:shadow-glow-sm;
+  }
+
+  .card {
+    @apply bg-canteen-card/80 backdrop-blur-sm border border-white/[0.08] rounded-2xl
+           shadow-lg shadow-black/20 transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:border-canteen-primary/30 hover:shadow-card-hover hover:-translate-y-0.5;
+  }
+
+  .input-field {
+    @apply w-full bg-canteen-dark/80 border border-white/[0.12] rounded-xl px-4 py-3
+           text-white placeholder-white/25 focus:outline-none focus:border-canteen-primary/70
+           focus:ring-2 focus:ring-canteen-primary/20 transition-all duration-300;
+  }
+
+  .glass {
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl;
+  }
+
+  .badge-paid    { @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-pending { @apply bg-amber-500/15 text-amber-400 border border-amber-500/25 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-failed  { @apply bg-red-500/15 text-red-400 border border-red-500/25 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-cod     { @apply bg-sky-500/15 text-sky-400 border border-sky-500/25 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+
+  /* Gradient text utility */
+  .text-gradient {
+    @apply text-canteen-primary drop-shadow-[0_0_12px_rgba(230,92,0,0.5)];
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+}
+
+/* ── Noise texture overlay ────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── Scrollbar hide utility ───────────────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
