@@ -132,7 +132,8 @@ const TrendChart = ({ data }) => {
       {data.map((day, i) => {
         const orderPct = (day.orders / maxOrders) * 100;
         const revPct = (day.revenue / maxRevenue) * 100;
-        const dateLabel = new Date(day.date + "T00:00:00").toLocaleDateString("en-IN", {
+        const [yr, mo, dy] = day.date.split("-");
+        const dateLabel = new Date(yr, mo - 1, dy).toLocaleDateString("en-IN", {
           weekday: "short",
           day: "numeric",
           month: "short",
@@ -299,7 +300,6 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
       }
     }
   }, [isOpen, fetchAnalytics]);
-
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!loginForm.username || !loginForm.password) {
@@ -310,16 +310,24 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
     setLoginLoading(true);
     try {
       const { data } = await api.post("/admin/login", loginForm);
+      // Temporarily store token so standard request interceptor picks it up
       localStorage.setItem("adminToken", data.token);
+      
+      // Try to fetch HOD analytics first to confirm role and permissions
+      const { data: res } = await api.get("/admin/hod-analytics");
+      setData(res);
+      
+      // Set the states only when fetching analytics succeeds
       setToken(data.token);
       toast.success("Welcome back! Loading analytics...");
       setLoginForm({ username: "", password: "" });
-      
-      // Fetch analytics right after token is set
-      const { data: res } = await api.get("/admin/hod-analytics");
-      setData(res);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed. Check credentials.");
+      // Clear token and clean up states if login or HOD access verification fails
+      localStorage.removeItem("adminToken");
+      setToken(null);
+      setData(null);
+      const msg = err.response?.data?.message || "Login failed. Check credentials.";
+      toast.error(msg);
     } finally {
       setLoginLoading(false);
     }
