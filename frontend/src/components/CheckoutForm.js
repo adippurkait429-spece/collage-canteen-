@@ -54,7 +54,7 @@ const CheckoutForm = ({ isOrderOpen }) => {
   });
   const [errors,        setErrors]        = useState({});
   const [loading,       setLoading]       = useState(false);
-  const [devSimMode,    setDevSimMode]    = useState(false); // toggle for sandbox simulation
+  const [devSimMode,    setDevSimMode]    = useState(process.env.NODE_ENV === "development"); // toggle for sandbox simulation
   const [paymentMethod, setPaymentMethod] = useState("phonepe"); // "phonepe" or "cod"
 
   // ── Redirect to menu if cart is empty ──────────────────────────────────────

@@ -21,7 +21,6 @@ const AdminLogin = () => {
       return;
     }
 
-    setLoading(true);
     try {
       const { data } = await api.post("/admin/login", form);
       localStorage.setItem("adminToken", data.token);
@@ -100,6 +99,9 @@ const AdminLogin = () => {
                 {showPass ? "🙈" : "👁️"}
               </button>
             </div>
+            <p className="text-[10px] text-gray-500 mt-1.5 leading-snug">
+              Rules: Min. 8 characters, must contain 1 uppercase letter, 1 lowercase letter, and 1 number.
+            </p>
           </div>
 
           <button

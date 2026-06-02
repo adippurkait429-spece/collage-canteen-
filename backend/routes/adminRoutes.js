@@ -26,15 +26,23 @@ router.post("/login", (req, res) => {
   }
 
   // Compare against env credentials (use bcrypt in production with DB-stored users)
+  let role = "";
   if (
-    username !== process.env.ADMIN_USERNAME ||
-    password !== process.env.ADMIN_PASSWORD
+    username === process.env.ADMIN_USERNAME &&
+    password === process.env.ADMIN_PASSWORD
   ) {
+    role = "admin";
+  } else if (
+    username === process.env.HOD_USERNAME &&
+    password === process.env.HOD_PASSWORD
+  ) {
+    role = "hod";
+  } else {
     return res.status(401).json({ success: false, message: "Invalid credentials." });
   }
 
   const token = jwt.sign(
-    { username, role: "admin" },
+    { username, role },
     process.env.JWT_SECRET,
     { expiresIn: "8h" } // token valid for one working shift
   );
@@ -157,6 +165,148 @@ router.get("/summary", adminAuth, async (req, res) => {
   } catch (err) {
     console.error("GET /admin/summary error:", err);
     res.status(500).json({ success: false, message: "Failed to generate summary." });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/admin/hod-analytics
+// All-time analytics for the Head Admin / HOD view:
+//   - Top selling items (all time)
+//   - Total orders & revenue (all time)
+//   - Department-wise order breakdown
+//   - Daily trend for last 7 days
+//   - Payment method distribution
+// ─────────────────────────────────────────────────────────────────────────────
+router.get("/hod-analytics", adminAuth, async (req, res) => {
+  if (req.admin.role !== "hod") {
+    return res.status(403).json({ success: false, message: "Access denied. Head Admin (HOD) role required." });
+  }
+  try {
+    // 1. Top selling items (all-time)
+    const topItems = await Order.aggregate([
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.name",
+          totalQuantity: { $sum: "$items.quantity" },
+          totalRevenue: { $sum: "$items.subtotal" },
+          orderCount: { $sum: 1 },
+        },
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 15 },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          totalQuantity: 1,
+          totalRevenue: { $round: ["$totalRevenue", 2] },
+          orderCount: 1,
+        },
+      },
+    ]);
+
+    // 2. Overall totals (all-time)
+    const overallTotals = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$totalAmount" },
+          paidOrders: { $sum: { $cond: [{ $eq: ["$paymentStatus", "paid"] }, 1, 0] } },
+          codOrders: { $sum: { $cond: [{ $eq: ["$paymentStatus", "cod"] }, 1, 0] } },
+          pendingOrders: { $sum: { $cond: [{ $eq: ["$paymentStatus", "pending"] }, 1, 0] } },
+          failedOrders: { $sum: { $cond: [{ $eq: ["$paymentStatus", "failed"] }, 1, 0] } },
+          avgOrderValue: { $avg: "$totalAmount" },
+        },
+      },
+    ]);
+
+    // 3. Department-wise breakdown
+    const departmentStats = await Order.aggregate([
+      {
+        $group: {
+          _id: "$student.department",
+          orderCount: { $sum: 1 },
+          totalSpent: { $sum: "$totalAmount" },
+        },
+      },
+      { $sort: { orderCount: -1 } },
+      {
+        $project: {
+          _id: 0,
+          department: "$_id",
+          orderCount: 1,
+          totalSpent: { $round: ["$totalSpent", 2] },
+        },
+      },
+    ]);
+
+    // 4. Daily trend (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const dailyTrend = await Order.aggregate([
+      { $match: { orderedAt: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$orderedAt" },
+          },
+          orders: { $sum: 1 },
+          revenue: { $sum: "$totalAmount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          orders: 1,
+          revenue: { $round: ["$revenue", 2] },
+        },
+      },
+    ]);
+
+    // 5. Payment method distribution
+    const paymentDist = await Order.aggregate([
+      {
+        $group: {
+          _id: "$paymentStatus",
+          count: { $sum: 1 },
+          amount: { $sum: "$totalAmount" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          status: "$_id",
+          count: 1,
+          amount: { $round: ["$amount", 2] },
+        },
+      },
+    ]);
+
+    const totals = overallTotals[0] || {
+      totalOrders: 0, totalRevenue: 0, paidOrders: 0,
+      codOrders: 0, pendingOrders: 0, failedOrders: 0, avgOrderValue: 0,
+    };
+
+    res.json({
+      success: true,
+      topItems,
+      totals: {
+        ...totals,
+        totalRevenue: Math.round((totals.totalRevenue || 0) * 100) / 100,
+        avgOrderValue: Math.round((totals.avgOrderValue || 0) * 100) / 100,
+      },
+      departmentStats,
+      dailyTrend,
+      paymentDistribution: paymentDist,
+    });
+  } catch (err) {
+    console.error("GET /admin/hod-analytics error:", err);
+    res.status(500).json({ success: false, message: "Failed to generate HOD analytics." });
   }
 });
 

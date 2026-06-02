@@ -21,6 +21,8 @@ import CheckoutForm from "./components/CheckoutForm";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AdminSidebar from "./components/AdminSidebar";
+import HeadAdminPanel from "./components/HeadAdminPanel";
 
 // ── Protected Route wrapper (admin only) ─────────────────────────────────────
 const ProtectedRoute = ({ children }) => {
@@ -29,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // ── Navbar ────────────────────────────────────────────────────────────────────
-const Navbar = ({ onCartOpen, isOrderOpen }) => {
+const Navbar = ({ onCartOpen, onAdminOpen, onHeadAdminOpen, isOrderOpen }) => {
   const { itemCount, total } = useCart();
   const navigate = useNavigate();
 
@@ -56,29 +58,54 @@ const Navbar = ({ onCartOpen, isOrderOpen }) => {
           </div>
         </button>
 
-        {/* Cart button */}
-        <button
-          onClick={onCartOpen}
-          className="relative flex items-center gap-2.5 glass border border-white/[0.08] hover:border-canteen-primary/40 rounded-xl px-4 py-2.5 transition-all duration-300 group hover:shadow-glow-sm"
-          aria-label="Open cart"
-        >
-          <span className="text-xl group-hover:scale-110 transition-transform duration-300">🛒</span>
-          {itemCount > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-white font-semibold text-sm">{itemCount} item{itemCount !== 1 ? "s" : ""}</span>
-              <span className="text-canteen-secondary font-bold text-sm">₹{total.toFixed(2)}</span>
-            </div>
-          )}
-          {itemCount === 0 && (
-            <span className="text-gray-400 text-sm">Cart</span>
-          )}
-          {/* Badge */}
-          {itemCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-r from-canteen-primary to-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-glow-sm">
-              {itemCount > 9 ? "9+" : itemCount}
+        {/* Admin & Cart Actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Cart button */}
+          <button
+            onClick={onCartOpen}
+            className="relative flex items-center gap-2 sm:gap-2.5 glass border border-white/[0.08] hover:border-canteen-primary/40 rounded-xl px-3 sm:px-4 py-2.5 transition-all duration-300 group hover:shadow-glow-sm"
+            aria-label="Open cart"
+          >
+            <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform duration-300">🛒</span>
+            {itemCount > 0 && (
+              <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
+                <span className="text-white font-semibold text-xs sm:text-sm">{itemCount} item{itemCount !== 1 ? "s" : ""}</span>
+                <span className="text-canteen-secondary font-bold text-xs sm:text-sm">₹{total.toFixed(2)}</span>
+              </div>
+            )}
+            {itemCount === 0 && (
+              <span className="hidden sm:inline text-gray-400 text-xs sm:text-sm">Cart</span>
+            )}
+            {/* Badge */}
+            {itemCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-r from-canteen-primary to-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-glow-sm">
+                {itemCount > 9 ? "9+" : itemCount}
+              </span>
+            )}
+          </button>
+
+          {/* Canteen Portal */}
+          <button
+            onClick={onAdminOpen}
+            className="relative flex items-center gap-2 sm:gap-2.5 glass border border-white/[0.08] hover:border-canteen-primary/40 rounded-xl px-3 sm:px-4 py-2.5 transition-all duration-300 group hover:shadow-glow-sm"
+          >
+            <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform duration-300">🔑</span>
+            <span className="hidden sm:inline text-gray-400 text-xs sm:text-sm font-semibold transition-colors duration-300 group-hover:text-white">
+              Canteen Portal
             </span>
-          )}
-        </button>
+          </button>
+
+          {/* Head Admin Analytics */}
+          <button
+            onClick={onHeadAdminOpen}
+            className="relative flex items-center gap-2 sm:gap-2.5 glass border border-white/[0.08] hover:border-violet-500/40 rounded-xl px-3 sm:px-4 py-2.5 transition-all duration-300 group hover:shadow-glow-sm"
+          >
+            <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform duration-300">📊</span>
+            <span className="hidden sm:inline text-gray-400 text-xs sm:text-sm font-semibold transition-colors duration-300 group-hover:text-white">
+              Head Admin Analytics
+            </span>
+          </button>
+        </div>
       </div>
     </nav>
   );
@@ -150,10 +177,17 @@ const Footer = () => (
 // ── Home / Menu page ──────────────────────────────────────────────────────────
 const HomePage = ({ isOrderOpen, onOrderStatusChange }) => {
   const [cartOpen, setCartOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [headAdminOpen, setHeadAdminOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar onCartOpen={() => setCartOpen(true)} isOrderOpen={isOrderOpen} />
+      <Navbar
+        onCartOpen={() => setCartOpen(true)}
+        onAdminOpen={() => setAdminOpen(true)}
+        onHeadAdminOpen={() => setHeadAdminOpen(true)}
+        isOrderOpen={isOrderOpen}
+      />
 
       {/* Hero section */}
       <div className="relative overflow-hidden">
@@ -214,7 +248,7 @@ const HomePage = ({ isOrderOpen, onOrderStatusChange }) => {
             </div>
 
             {/* Deadline timer */}
-            <div className="max-w-md">
+            <div>
               <Timer onStatusChange={onOrderStatusChange} />
             </div>
           </div>
@@ -232,6 +266,18 @@ const HomePage = ({ isOrderOpen, onOrderStatusChange }) => {
         onClose={() => setCartOpen(false)}
         isOrderOpen={isOrderOpen}
       />
+
+      {/* Admin sidebar */}
+      <AdminSidebar
+        isOpen={adminOpen}
+        onClose={() => setAdminOpen(false)}
+      />
+
+      {/* Head Admin panel */}
+      <HeadAdminPanel
+        isOpen={headAdminOpen}
+        onClose={() => setHeadAdminOpen(false)}
+      />
     </div>
   );
 };
@@ -239,9 +285,16 @@ const HomePage = ({ isOrderOpen, onOrderStatusChange }) => {
 // ── Checkout page wrapper ─────────────────────────────────────────────────────
 const CheckoutPage = ({ isOrderOpen }) => {
   const [cartOpen, setCartOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [headAdminOpen, setHeadAdminOpen] = useState(false);
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar onCartOpen={() => setCartOpen(true)} isOrderOpen={isOrderOpen} />
+      <Navbar
+        onCartOpen={() => setCartOpen(true)}
+        onAdminOpen={() => setAdminOpen(true)}
+        onHeadAdminOpen={() => setHeadAdminOpen(true)}
+        isOrderOpen={isOrderOpen}
+      />
       <main className="max-w-6xl mx-auto px-4 py-8 flex-1">
         <CheckoutForm isOrderOpen={isOrderOpen} />
       </main>
@@ -250,6 +303,14 @@ const CheckoutPage = ({ isOrderOpen }) => {
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}
         isOrderOpen={isOrderOpen}
+      />
+      <AdminSidebar
+        isOpen={adminOpen}
+        onClose={() => setAdminOpen(false)}
+      />
+      <HeadAdminPanel
+        isOpen={headAdminOpen}
+        onClose={() => setHeadAdminOpen(false)}
       />
     </div>
   );

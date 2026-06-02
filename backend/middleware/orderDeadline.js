@@ -8,7 +8,7 @@
 
 const checkOrderDeadline = (req, res, next) => {
   // Toggle to bypass the 11:00 AM deadline rule
-  const DISABLE_DEADLINE = false; 
+  const DISABLE_DEADLINE = true; 
 
   if (DISABLE_DEADLINE) {
     req.serverTime = new Date();

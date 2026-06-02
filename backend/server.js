@@ -15,14 +15,36 @@ const app = express();
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
-// Allow requests from the React dev server (or production client URL)
+// Allow requests from the React dev server (or production client URL), plus local IPs for mobile testing
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        origin.startsWith("http://192.168.") ||
+        origin.startsWith("http://10.") ||
+        origin.startsWith("http://172.");
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     methods: ["GET", "POST", "PUT", "PATCH"],
     credentials: true,
   })
 );
+
 
 // Parse incoming JSON bodies (max 10mb for potential base64 payloads)
 app.use(express.json({ limit: "10mb" }));
@@ -68,6 +90,19 @@ app.use((err, req, res, next) => {
 
 // ─── Database Connection & Server Start ───────────────────────────────────────
 const PORT = process.env.PORT || 5000;
+
+// Setup event listeners for runtime database connection status
+mongoose.connection.on("error", (err) => {
+  console.error("⚠️  MongoDB connection error at runtime:", err.message);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️  MongoDB disconnected! Trying to reconnect...");
+});
+
+mongoose.connection.on("reconnected", () => {
+  console.log("✅  MongoDB reconnected successfully");
+});
 
 mongoose
   .connect(process.env.MONGO_URI)

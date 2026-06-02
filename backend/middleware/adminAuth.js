@@ -24,8 +24,8 @@ const adminAuth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Confirm the token was issued for admin role
-    if (decoded.role !== "admin") {
+    // Confirm the token was issued for admin or hod role
+    if (decoded.role !== "admin" && decoded.role !== "hod") {
       return res.status(403).json({
         success: false,
         message: "Access denied. Insufficient privileges.",
