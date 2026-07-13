@@ -8,7 +8,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import api from "../utils/api";
-import HeadAdminPanel from "./HeadAdminPanel";
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -46,7 +45,6 @@ const AdminSidebar = ({ isOpen, onClose }) => {
   const [dashLoading, setDashLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [hodPanelOpen, setHodPanelOpen] = useState(false);
 
   // Reset token on open so password is required every time they open the panel
   useEffect(() => {
@@ -152,7 +150,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-canteen-primary/20 to-orange-500/10 flex items-center justify-center text-xl">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-canteen-primary/20 to-blue-500/10 flex items-center justify-center text-xl">
               🔑
             </div>
             <div>
@@ -252,32 +250,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 </div>
               ) : (
                 <>
-                   {/* Head Admin Button */}
-                   <button
-                     onClick={() => setHodPanelOpen(true)}
-                     className="w-full group relative overflow-hidden rounded-2xl p-4 border border-violet-500/20 hover:border-violet-500/40 transition-all duration-300 hover:shadow-lg"
-                     style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.1) 0%, rgba(109,40,217,0.05) 50%, rgba(168,85,247,0.1) 100%)' }}
-                   >
-                     <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-20 bg-violet-500" style={{ filter: 'blur(30px)', transform: 'translate(30%, -30%)' }} />
-                     <div className="relative flex items-center justify-between">
-                       <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600/30 to-purple-500/20 border border-violet-500/20 flex items-center justify-center text-lg">
-                           🎓
-                         </div>
-                         <div className="text-left">
-                           <p className="text-sm font-bold text-white group-hover:text-violet-300 transition-colors">Head Admin Analytics</p>
-                           <p className="text-[10px] text-gray-500">HOD Dashboard • All-time data & insights</p>
-                         </div>
-                       </div>
-                       <span className="text-gray-500 group-hover:text-violet-400 transition-colors text-lg">→</span>
-                     </div>
-                   </button>
-
                   {/* Stats Grid */}
                   {stats && (
                     <div className="grid grid-cols-3 gap-3">
                       <StatCard label="Total Orders" value={stats.totalOrders} sub="Today" />
-                      <StatCard label="Revenue" value={`₹${(stats.totalRevenue || 0).toFixed(0)}`} sub="Today" color="text-canteen-secondary" />
+                      <StatCard label="Revenue" value={`₹${(stats.totalRevenue || 0).toFixed(0)}`} sub="Today" color="text-canteen-glow" />
                       <StatCard label="Paid (Online)" value={stats.paidOrders} sub="Orders" color="text-green-400" />
                       <StatCard label="COD" value={stats.codOrders || 0} sub="Orders" color="text-blue-400" />
                       <StatCard label="Pending" value={stats.pendingOrders} sub="Orders" color="text-yellow-400" />
@@ -307,11 +284,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                               <tr key={item.itemId || item.name} className="hover:bg-white/[0.01]">
                                 <td className="py-2 text-white font-medium">{item.name}</td>
                                 <td className="py-2 text-center">
-                                  <span className="bg-canteen-primary/20 text-canteen-primary px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                  <span className="bg-canteen-primary/20 text-canteen-secondary px-2 py-0.5 rounded-full text-[10px] font-bold">
                                     {item.totalQuantity}
                                   </span>
                                 </td>
-                                <td className="py-2 text-right text-canteen-secondary font-semibold">
+                                <td className="py-2 text-right text-canteen-glow font-semibold">
                                   ₹{item.totalRevenue.toFixed(2)}
                                 </td>
                               </tr>
@@ -365,12 +342,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                           <tbody className="divide-y divide-white/5">
                             {filteredOrders.map((order) => (
                               <tr key={order._id} className="hover:bg-white/[0.01]">
-                                <td className="px-3 py-2.5 font-mono text-[10px] text-canteen-secondary">
+                                <td className="px-3 py-2.5 font-mono text-[10px] text-canteen-glow">
                                   {order.orderRef || order._id.slice(-6).toUpperCase()}
                                 </td>
                                 <td className="px-3 py-2.5">
                                   <p className="font-semibold text-white">{order.student.name}</p>
                                   <p className="text-gray-500 text-[10px]">{order.student.rollNumber} • {order.student.department}</p>
+                                  <p className="text-gray-500 text-[10px]">📞 {order.student.phone}</p>
                                 </td>
                                 <td className="px-3 py-2.5">
                                   <div className="space-y-0.5">
@@ -381,7 +359,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                                     ))}
                                   </div>
                                 </td>
-                                <td className="px-3 py-2.5 text-right text-canteen-secondary font-semibold">
+                                <td className="px-3 py-2.5 text-right text-canteen-glow font-semibold">
                                   ₹{order.totalAmount.toFixed(2)}
                                 </td>
                                 <td className="px-3 py-2.5">
@@ -400,11 +378,6 @@ const AdminSidebar = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Head Admin Panel */}
-        <HeadAdminPanel
-          isOpen={hodPanelOpen}
-          onClose={() => setHodPanelOpen(false)}
-        />
       </aside>
     </>
   );

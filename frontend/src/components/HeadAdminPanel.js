@@ -266,6 +266,11 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Menu Management states
+  const [activeTab, setActiveTab] = useState("analytics"); // "analytics" | "menu"
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+
   // Login states
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [loginLoading, setLoginLoading] = useState(false);
@@ -290,6 +295,49 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
     }
   }, []);
 
+  const fetchMenu = useCallback(async () => {
+    try {
+      setMenuLoading(true);
+      const { data: res } = await api.get("/menu");
+      if (res.success && res.flatItems) {
+        setMenuItems(res.flatItems);
+      }
+    } catch (err) {
+      toast.error("Failed to fetch menu items.");
+    } finally {
+      setMenuLoading(false);
+    }
+  }, []);
+
+  const deleteItem = async (itemId, name) => {
+    if (!window.confirm(`Are you sure you want to delete ${name}?`)) return;
+    try {
+      const { data: res } = await api.delete(`/menu/${itemId}`);
+      if (res.success) {
+        toast.success(res.message);
+        fetchMenu();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete item");
+    }
+  };
+
+  const renewSystem = async () => {
+    if (!window.confirm("Are you sure you want to renew the system? This will delete all orders and reset all analytics to zero. This action cannot be undone.")) return;
+    try {
+      setMenuLoading(true);
+      const { data: res } = await api.delete("/admin/orders");
+      if (res.success) {
+        toast.success(res.message);
+        fetchAnalytics(); // Refresh analytics to show all zeros
+      }
+    } catch (err) {
+      toast.error("Failed to renew system.");
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
   // Sync token when panel opens
   useEffect(() => {
     if (isOpen) {
@@ -297,9 +345,10 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
       setToken(currentToken);
       if (currentToken) {
         fetchAnalytics();
+        fetchMenu();
       }
     }
-  }, [isOpen, fetchAnalytics]);
+  }, [isOpen, fetchAnalytics, fetchMenu]);
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!loginForm.username || !loginForm.password) {
@@ -477,6 +526,18 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
             </div>
           ) : data ? (
             <>
+              {/* ── System Actions ──────────────────────────────────────────── */}
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={renewSystem}
+                  disabled={menuLoading}
+                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 hover:border-amber-500/40 px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2"
+                  title="Reset all orders and analytics"
+                >
+                  ⚠️ {menuLoading ? "Renewing..." : "Renew System"}
+                </button>
+              </div>
+
               {/* ── Summary Cards ──────────────────────────────────────────── */}
               <div className="grid grid-cols-2 gap-3">
                 <HodStatCard

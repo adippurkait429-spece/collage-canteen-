@@ -5,10 +5,10 @@ module.exports = {
     extend: {
       colors: {
         gray: {
-          400: "#F3F4F6", // Much brighter (was #9CA3AF)
-          500: "#E5E7EB", // Much brighter (was #6B7280)
-          600: "#D1D5DB", // Much brighter (was #4B5563)
-          700: "#9CA3AF", // Much brighter (was #374151)
+          400: "#9CA3AF",
+          500: "#6B7280",
+          600: "#4B5563",
+          700: "#374151",
         },
         canteen: {
           primary:   "#E65C00",  // warm orange

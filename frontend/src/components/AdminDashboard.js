@@ -116,7 +116,7 @@ const AdminDashboard = () => {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold">
-            🍽️ <span className="text-canteen-primary">Admin</span> Dashboard
+            🍽️ <span className="text-gradient">Admin</span> Dashboard
           </h1>
           <p className="text-gray-400 text-sm mt-1">
             Today: {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
@@ -142,7 +142,7 @@ const AdminDashboard = () => {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
           <StatCard label="Total Orders"   value={stats.totalOrders}                                           sub="today"              />
-          <StatCard label="Revenue"        value={`₹${(stats.totalRevenue || 0).toFixed(2)}`}                 sub="today"              color="text-canteen-secondary" />
+          <StatCard label="Revenue"        value={`₹${(stats.totalRevenue || 0).toFixed(2)}`}                 sub="today"              color="text-canteen-glow" />
           <StatCard label="Paid"           value={stats.paidOrders}                                            sub="orders"             color="text-green-400" />
           <StatCard label="COD"            value={stats.codOrders || 0}                                        sub="orders"             color="text-blue-400" />
           <StatCard label="Pending"        value={stats.pendingOrders}                                         sub="orders"             color="text-yellow-400" />
@@ -174,11 +174,11 @@ const AdminDashboard = () => {
                   <tr key={item.itemId || item.name} className="hover:bg-white/2">
                     <td className="py-2.5 text-white font-medium">{item.name}</td>
                     <td className="py-2.5 text-center">
-                      <span className="bg-canteen-primary/20 text-canteen-primary border border-canteen-primary/30 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                      <span className="bg-canteen-primary/20 text-canteen-secondary border border-canteen-primary/30 px-2.5 py-0.5 rounded-full text-xs font-bold">
                         {item.totalQuantity}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right text-canteen-secondary font-semibold">
+                    <td className="py-2.5 text-right text-canteen-glow font-semibold">
                       ₹{item.totalRevenue.toFixed(2)}
                     </td>
                   </tr>
@@ -244,7 +244,7 @@ const AdminDashboard = () => {
                   <tr key={order._id} className="hover:bg-white/3 transition-colors">
                     {/* Order Ref */}
                     <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-canteen-secondary">
+                      <span className="font-mono text-xs text-canteen-glow">
                         {order.orderRef || order._id.slice(-6).toUpperCase()}
                       </span>
                     </td>
@@ -270,7 +270,7 @@ const AdminDashboard = () => {
 
                     {/* Amount */}
                     <td className="px-4 py-3 text-right">
-                      <span className="font-semibold text-canteen-secondary">
+                      <span className="font-semibold text-canteen-glow">
                         ₹{order.totalAmount.toFixed(2)}
                       </span>
                     </td>

@@ -9,6 +9,9 @@
  *  - paymentStatus  : "pending" | "paid" | "failed"
  *  - paymentDetails : PhonePe transaction data (stored on callback)
  *  - orderedAt      : timestamp when the order was created
+ *  - latitude       : user's GPS latitude at time of order
+ *  - longitude      : user's GPS longitude at time of order
+ *  - distanceFromRestaurant : server-calculated distance in KM
  */
 
 const mongoose = require("mongoose");
@@ -132,6 +135,28 @@ const OrderSchema = new mongoose.Schema(
     orderedAt: {
       type: Date,
       default: Date.now,
+    },
+
+    // ── Location Data (for delivery radius enforcement) ─────────────────────
+    // User's GPS latitude at the time of order placement
+    latitude: {
+      type: Number,
+      required: [true, "User latitude is required for delivery verification"],
+      min: [-90, "Latitude must be between -90 and 90"],
+      max: [90, "Latitude must be between -90 and 90"],
+    },
+    // User's GPS longitude at the time of order placement
+    longitude: {
+      type: Number,
+      required: [true, "User longitude is required for delivery verification"],
+      min: [-180, "Longitude must be between -180 and 180"],
+      max: [180, "Longitude must be between -180 and 180"],
+    },
+    // Server-calculated Haversine distance from restaurant (in KM)
+    distanceFromRestaurant: {
+      type: Number,
+      required: [true, "Distance from restaurant is required"],
+      min: [0, "Distance cannot be negative"],
     },
   },
   {

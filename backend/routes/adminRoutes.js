@@ -310,4 +310,21 @@ router.get("/hod-analytics", adminAuth, async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /api/admin/orders
+// Drops all orders to reset analytics (Renew System feature for HOD).
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete("/orders", adminAuth, async (req, res) => {
+  if (req.admin.role !== "hod") {
+    return res.status(403).json({ success: false, message: "Access denied. Head Admin (HOD) role required." });
+  }
+  try {
+    await Order.deleteMany({});
+    res.json({ success: true, message: "System renewed. All orders and analytics have been reset." });
+  } catch (err) {
+    console.error("DELETE /admin/orders error:", err);
+    res.status(500).json({ success: false, message: "Failed to reset system." });
+  }
+});
+
 module.exports = router;

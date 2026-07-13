@@ -41,18 +41,6 @@ export const MENU_CATEGORIES = [
       { itemId: "s5", name: "Maggi Noodles",         price: 35,  emoji: "🍜", description: "Classic 2-minute noodles with veggies" },
     ],
   },
-  {
-    id:    "beverages",
-    label: "Beverages",
-    emoji: "☕",
-    items: [
-      { itemId: "v1", name: "Masala Chai",           price: 15,  emoji: "🍵", description: "Spiced Indian milk tea" },
-      { itemId: "v2", name: "Filter Coffee",         price: 20,  emoji: "☕", description: "South-Indian decoction coffee" },
-      { itemId: "v3", name: "Fresh Lime Soda",       price: 30,  emoji: "🍋", description: "Sweet or salty, your choice" },
-      { itemId: "v4", name: "Mango Lassi",           price: 40,  emoji: "🥛", description: "Thick chilled mango yogurt drink" },
-      { itemId: "v5", name: "Cold Coffee",           price: 45,  emoji: "🧃", description: "Blended iced coffee with milk" },
-    ],
-  },
 ];
 
 // Flatten all items into a single list (useful for order summaries)

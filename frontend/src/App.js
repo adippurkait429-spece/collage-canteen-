@@ -4,6 +4,7 @@
  * Root component. Sets up:
  *  - React Router v6 routes
  *  - CartProvider context
+ *  - LocationProvider context (GPS-based delivery restriction)
  *  - Toast notifications
  *  - The main layout (Navbar + page content)
  */
@@ -12,6 +13,8 @@ import React, { useState, useCallback } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { CartProvider, useCart } from "./context/CartContext";
+
+import { LocationProvider } from "./context/LocationContext";
 
 // Page & Component imports
 import Timer from "./components/Timer";
@@ -23,6 +26,7 @@ import AdminLogin from "./pages/AdminLogin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminSidebar from "./components/AdminSidebar";
 import HeadAdminPanel from "./components/HeadAdminPanel";
+import LocationPrompt from "./components/LocationPrompt";
 
 // ── Protected Route wrapper (admin only) ─────────────────────────────────────
 const ProtectedRoute = ({ children }) => {
@@ -340,6 +344,8 @@ const AppInner = () => {
         }}
       />
 
+      <LocationPrompt />
+
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePage isOrderOpen={isOrderOpen} onOrderStatusChange={handleOrderStatus} />} />
@@ -360,7 +366,9 @@ const AppInner = () => {
 const App = () => (
   <BrowserRouter>
     <CartProvider>
-      <AppInner />
+      <LocationProvider>
+        <AppInner />
+      </LocationProvider>
     </CartProvider>
   </BrowserRouter>
 );

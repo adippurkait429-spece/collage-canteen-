@@ -2,7 +2,7 @@
  * routes/orderRoutes.js
  *
  * Public-facing order routes:
- *   POST /api/orders               → Place a new order (deadline-gated)
+ *   POST /api/orders               → Place a new order (deadline-gated + location-verified)
  *   GET  /api/orders/:id           → Get order details by ID
  *   POST /api/orders/payment-callback → PhonePe payment callback
  *   PATCH /api/orders/:id/simulate-payment → Dev-only payment simulation
@@ -12,6 +12,7 @@ const express  = require("express");
 const router   = express.Router();
 const Order    = require("../models/Order");
 const { checkOrderDeadline } = require("../middleware/orderDeadline");
+const { validateLocation }   = require("../middleware/validateLocation");
 const {
   initiatePhonePePayment,
   verifyPhonePeCallback,
@@ -20,9 +21,10 @@ const {
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/orders
 // Place a new order. The `checkOrderDeadline` middleware rejects requests
-// after 11:00 AM before any DB or payment logic runs.
+// after 11:00 AM. The `validateLocation` middleware rejects requests from
+// users outside the 5 KM delivery radius. Both run before any DB logic.
 // ─────────────────────────────────────────────────────────────────────────────
-router.post("/", checkOrderDeadline, async (req, res) => {
+router.post("/", checkOrderDeadline, validateLocation, async (req, res) => {
   try {
     const { student, items, paymentMethod } = req.body;
 
@@ -53,6 +55,9 @@ router.post("/", checkOrderDeadline, async (req, res) => {
     // Determine payment method (default: phonepe)
     const method = paymentMethod === "cod" ? "cod" : "phonepe";
 
+    // ── Read server-verified location from validateLocation middleware ────────
+    const { latitude, longitude, distanceFromRestaurant } = req.userLocation;
+
     // ── Create order in DB (totalAmount recalculated server-side in pre-save) ──
     const order = new Order({
       student,
@@ -61,6 +66,10 @@ router.post("/", checkOrderDeadline, async (req, res) => {
       paymentMethod: method,
       // COD orders get 'cod' status immediately; online orders stay 'pending'
       paymentStatus: method === "cod" ? "cod" : "pending",
+      // Location data (server-verified)
+      latitude,
+      longitude,
+      distanceFromRestaurant,
     });
 
     await order.save();

@@ -53,10 +53,12 @@ app.use(express.urlencoded({ extended: true }));
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const orderRoutes = require("./routes/orderRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const menuRoutes = require("./routes/menuRoutes");
 
 // ─── Route Mounting ───────────────────────────────────────────────────────────
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/menu", menuRoutes);
 
 // Health-check endpoint so you can quickly verify the server is running
 app.get("/api/health", (req, res) => {

@@ -8,10 +8,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useLocation } from "../context/LocationContext";
 
 const CartSidebar = ({ isOpen, onClose, isOrderOpen }) => {
   const { cart, removeItem, updateQty, total, itemCount, clearCart } = useCart();
   const navigate = useNavigate();
+  const { isWithinRange, loading: locationLoading, error: locationError, distance } = useLocation();
+
+  // Checkout is allowed only when location is verified and within range
+  const canCheckout = isOrderOpen && !locationLoading && !locationError && isWithinRange;
 
   const handleCheckout = () => {
     onClose();
@@ -137,13 +142,27 @@ const CartSidebar = ({ isOpen, onClose, isOrderOpen }) => {
               </span>
             </div>
 
-            {isOrderOpen ? (
+            {/* Location restriction message */}
+            {!locationLoading && !locationError && !isWithinRange && (
+              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2.5">
+                <span className="text-base">📍</span>
+                <p className="text-red-400 text-xs font-medium">
+                  Delivery unavailable — you're {distance} KM away (max 5 KM).
+                </p>
+              </div>
+            )}
+
+            {canCheckout ? (
               <button onClick={handleCheckout} className="btn-primary w-full text-base py-3.5">
                 Proceed to Checkout →
               </button>
-            ) : (
+            ) : !isOrderOpen ? (
               <button disabled className="btn-primary w-full text-base py-3.5">
                 🚫 Orders Closed
+              </button>
+            ) : (
+              <button disabled className="btn-primary w-full text-base py-3.5">
+                📍 Delivery Not Available at Your Location
               </button>
             )}
           </div>

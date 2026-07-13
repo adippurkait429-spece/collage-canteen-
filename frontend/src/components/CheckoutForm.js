@@ -10,6 +10,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
+import { useLocation } from "../context/LocationContext";
 import api from "../utils/api";
 
 // ── Department options ────────────────────────────────────────────────────────
@@ -45,16 +46,25 @@ const validate = (fields) => {
 const CheckoutForm = ({ isOrderOpen }) => {
   const { cart, total, clearCart } = useCart();
   const navigate = useNavigate();
+  const {
+    latitude,
+    longitude,
+    distance,
+    isWithinRange,
+    loading: locationLoading,
+    error: locationError,
+    retryLocation,
+  } = useLocation();
 
   const [form, setForm] = useState({
-    name:        "",
-    rollNumber:  "",
-    department:  "",
-    phone:       "",
+    name: "",
+    rollNumber: "",
+    department: "",
+    phone: "",
   });
-  const [errors,        setErrors]        = useState({});
-  const [loading,       setLoading]       = useState(false);
-  const [devSimMode,    setDevSimMode]    = useState(process.env.NODE_ENV === "development"); // toggle for sandbox simulation
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [devSimMode, setDevSimMode] = useState(process.env.NODE_ENV === "development"); // toggle for sandbox simulation
   const [paymentMethod, setPaymentMethod] = useState("phonepe"); // "phonepe" or "cod"
 
   // ── Redirect to menu if cart is empty ──────────────────────────────────────
@@ -87,6 +97,17 @@ const CheckoutForm = ({ isOrderOpen }) => {
       return;
     }
 
+    // Client-side location check (server also enforces this via middleware)
+    if (!isWithinRange) {
+      toast.error("Sorry! Delivery is available only within 5 KM of the college canteen.");
+      return;
+    }
+
+    if (latitude === null || longitude === null) {
+      toast.error("Unable to determine your location. Please allow location access and retry.");
+      return;
+    }
+
     const validationErrors = validate(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -96,18 +117,21 @@ const CheckoutForm = ({ isOrderOpen }) => {
 
     setLoading(true);
     try {
-      // Submit order to backend
+      // Submit order to backend (includes location for server-side verification)
       const { data } = await api.post("/orders", {
         student: {
-          name:       form.name.trim(),
+          name: form.name.trim(),
           rollNumber: form.rollNumber.trim().toUpperCase(),
           department: form.department,
-          phone:      form.phone,
+          phone: form.phone,
         },
         items: cart.map(({ itemId, name, price, quantity }) => ({
           itemId, name, price, quantity,
         })),
         paymentMethod,
+        // GPS coordinates for backend distance verification
+        latitude,
+        longitude,
       });
 
       clearCart();
@@ -310,10 +334,58 @@ const CheckoutForm = ({ isOrderOpen }) => {
             </div>
           )}
 
+          {/* ── Location Status ────────────────────────────────────────── */}
+          {locationLoading && (
+            <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3 animate-pulse">
+              <span className="text-base">📍</span>
+              <p className="text-blue-400 text-sm font-medium">Detecting your location...</p>
+            </div>
+          )}
+
+          {!locationLoading && locationError && (
+            <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+              <span className="text-base">⚠️</span>
+              <div className="flex-1">
+                <p className="text-amber-400 text-sm font-medium">Location required</p>
+                <p className="text-gray-500 text-xs mt-0.5">{locationError}</p>
+              </div>
+              <button
+                type="button"
+                onClick={retryLocation}
+                className="text-xs text-amber-400 hover:text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-lg transition-all duration-300 hover:bg-amber-500/10 whitespace-nowrap"
+              >
+                🔄 Retry
+              </button>
+            </div>
+          )}
+
+          {!locationLoading && !locationError && !isWithinRange && (
+            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+              <span className="text-base">📍</span>
+              <div>
+                <p className="text-red-400 text-sm font-medium">
+                  Delivery not available at your location
+                </p>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  You are {distance} KM away. Maximum delivery radius is 5 KM.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!locationLoading && !locationError && isWithinRange && (
+            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-2.5">
+              <span className="text-base">✅</span>
+              <p className="text-green-400 text-xs font-semibold">
+                You're {distance} KM away — delivery available!
+              </p>
+            </div>
+          )}
+
           {/* Submit */}
           <button
             type="submit"
-            disabled={loading || !isOrderOpen}
+            disabled={loading || !isOrderOpen || !isWithinRange || locationLoading || !!locationError}
             className="btn-primary w-full py-4 text-base flex items-center justify-center gap-3"
           >
             {loading ? (
@@ -326,6 +398,8 @@ const CheckoutForm = ({ isOrderOpen }) => {
               </>
             ) : !isOrderOpen ? (
               "🚫 Orders Closed for Today"
+            ) : !isWithinRange || locationError ? (
+              "📍 Delivery Not Available"
             ) : paymentMethod === "cod" ? (
               `Place Order — ₹${total.toFixed(2)} (Cash on Delivery) →`
             ) : (
