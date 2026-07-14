@@ -110,12 +110,17 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅  MongoDB connected successfully");
-    app.listen(PORT, () => {
-      console.log(`🚀  Server running on http://localhost:${PORT}`);
-      console.log(`📋  Environment: ${process.env.NODE_ENV}`);
-    });
   })
   .catch((err) => {
     console.error("❌  MongoDB connection failed:", err.message);
-    process.exit(1);
   });
+
+// Only listen locally, Vercel will handle the routing via module.exports
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`🚀  Server running on http://localhost:${PORT}`);
+    console.log(`📋  Environment: ${process.env.NODE_ENV}`);
+  });
+}
+
+module.exports = app;
