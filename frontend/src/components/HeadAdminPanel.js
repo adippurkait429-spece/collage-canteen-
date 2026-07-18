@@ -275,6 +275,7 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [loginLoading, setLoginLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [confirmRenew, setConfirmRenew] = useState(false);
 
   const fetchAnalytics = useCallback(async () => {
     try {
@@ -323,7 +324,11 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
   };
 
   const renewSystem = async () => {
-    if (!window.confirm("Are you sure you want to renew the system? This will delete all orders and reset all analytics to zero. This action cannot be undone.")) return;
+    if (!confirmRenew) {
+      setConfirmRenew(true);
+      setTimeout(() => setConfirmRenew(false), 4000); // Cancel if not clicked again in 4 seconds
+      return;
+    }
     try {
       setMenuLoading(true);
       const { data: res } = await api.delete("/admin/orders");
@@ -335,6 +340,7 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
       toast.error("Failed to renew system.");
     } finally {
       setMenuLoading(false);
+      setConfirmRenew(false);
     }
   };
 
@@ -531,10 +537,10 @@ const HeadAdminPanel = ({ isOpen, onClose }) => {
                 <button
                   onClick={renewSystem}
                   disabled={menuLoading}
-                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 hover:border-amber-500/40 px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2"
+                  className={`${confirmRenew ? "bg-red-500/20 text-red-400 border-red-500/40" : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-500/20"} border px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2`}
                   title="Reset all orders and analytics"
                 >
-                  ⚠️ {menuLoading ? "Renewing..." : "Renew System"}
+                  ⚠️ {menuLoading ? "Renewing..." : confirmRenew ? "Tap Again to Confirm!" : "Renew System"}
                 </button>
               </div>
 
