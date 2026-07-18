@@ -256,9 +256,9 @@ const Timer = ({ onStatusChange }) => {
               </p>
               <p className="text-gray-500 text-sm mt-1.5">
                 {isEarly ? (
-                  <>Ordering opens at <span className="font-body tabular-nums text-blue-400/80 font-bold"><span className="opacity-0 select-none">0</span>8:00 AM</span></>
+                  <>Ordering opens at <span className="font-body tabular-nums text-blue-400/80 font-bold">8:00 AM</span></>
                 ) : (
-                  <>Pre-ordering reopens tomorrow at <span className="font-body tabular-nums text-red-400/80 font-bold"><span className="opacity-0 select-none">0</span>8:00 AM</span></>
+                  <>Pre-ordering reopens tomorrow at <span className="font-body tabular-nums text-red-400/80 font-bold">8:00 AM</span></>
                 )}
               </p>
             </div>
@@ -328,7 +328,7 @@ const Timer = ({ onStatusChange }) => {
             <span className={`text-sm sm:text-base font-bold font-body tabular-nums transition-colors duration-500 whitespace-nowrap
               ${isUrgent ? "text-red-400" : "text-canteen-primary"}`}
             >
-              <span className="opacity-0 select-none">0</span>8:00 AM - 11:00 AM
+              8:00 AM - 11:00 AM
             </span>
           </div>
         </div>
