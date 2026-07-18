@@ -25,7 +25,7 @@ const DISABLE_DEADLINE = false;
  */
 const computeTimeLeft = () => {
   const now = new Date();
-  
+
   let openTime = new Date();
   openTime.setHours(OPEN_HOUR, 0, 0, 0);
 
@@ -227,7 +227,7 @@ const Timer = ({ onStatusChange }) => {
   // ── Closed State ────────────────────────────────────────────────────────────
   if (!timeLeft.isOpen) {
     const isEarly = timeLeft.isTooEarly;
-    
+
     return (
       <div className="relative overflow-hidden animate-fade-in">
         {/* Background glow */}
@@ -256,9 +256,9 @@ const Timer = ({ onStatusChange }) => {
               </p>
               <p className="text-gray-500 text-sm mt-1.5">
                 {isEarly ? (
-                  <>Ordering opens at <span className="text-blue-400/80 font-semibold">08:00 AM</span></>
+                  <>Ordering opens at <span className="text-blue-400/80 font-semibold"><span className="opacity-0 select-none">0</span>8:00 AM</span></>
                 ) : (
-                  <>Pre-ordering reopens tomorrow at <span className="text-red-400/80 font-semibold">08:00 AM</span></>
+                  <>Pre-ordering reopens tomorrow at <span className="text-red-400/80 font-semibold"><span className="opacity-0 select-none">0</span>8:00 AM</span></>
                 )}
               </p>
             </div>
@@ -328,7 +328,7 @@ const Timer = ({ onStatusChange }) => {
             <span className={`text-sm sm:text-base font-bold font-display transition-colors duration-500 whitespace-nowrap
               ${isUrgent ? "text-red-400" : "text-canteen-primary"}`}
             >
-              08:00 AM - 11:00 AM
+              <span className="opacity-0 select-none">0</span>8:00 AM - 11:00 AM
             </span>
           </div>
         </div>
