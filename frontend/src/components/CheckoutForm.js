@@ -99,7 +99,7 @@ const CheckoutForm = ({ isOrderOpen }) => {
 
     // Client-side location check (server also enforces this via middleware)
     if (!isWithinRange) {
-      toast.error("Sorry! Delivery is available only within 5 KM of the college canteen.");
+      toast.error("You are not under 5km distance please check this.");
       return;
     }
 
@@ -367,7 +367,7 @@ const CheckoutForm = ({ isOrderOpen }) => {
                   Delivery not available at your location
                 </p>
                 <p className="text-gray-500 text-xs mt-0.5">
-                  You are {distance} KM away. Maximum delivery radius is 5 KM.
+                  You are not under 5km distance please check this.
                 </p>
               </div>
             </div>
