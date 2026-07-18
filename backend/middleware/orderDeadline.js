@@ -8,7 +8,7 @@
 
 const checkOrderDeadline = (req, res, next) => {
   // Toggle to bypass the 11:00 AM deadline rule
-  const DISABLE_DEADLINE = true; 
+  const DISABLE_DEADLINE = false; 
 
   if (DISABLE_DEADLINE) {
     req.serverTime = new Date();
@@ -17,6 +17,7 @@ const checkOrderDeadline = (req, res, next) => {
 
   const now = new Date();
 
+  const openHour = 8;
   const deadlineHour = parseInt(process.env.ORDER_DEADLINE_HOUR || 11, 10);
   const deadlineMin  = parseInt(process.env.ORDER_DEADLINE_MINUTE || 0, 10);
 
@@ -25,12 +26,21 @@ const checkOrderDeadline = (req, res, next) => {
 
   // Build comparable minute-of-day values
   const currentTotalMinutes  = currentHour  * 60 + currentMin;
+  const openTotalMinutes     = openHour * 60;
   const deadlineTotalMinutes = deadlineHour * 60 + deadlineMin;
+
+  if (currentTotalMinutes < openTotalMinutes) {
+    return res.status(403).json({
+      success: false,
+      message: `Orders are not open yet. You can place orders between 8:00 AM and ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
+      serverTime: now.toISOString(),
+    });
+  }
 
   if (currentTotalMinutes >= deadlineTotalMinutes) {
     return res.status(403).json({
       success: false,
-      message: `Orders are closed for today. The ordering window closes at ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM. Please place your order tomorrow before ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
+      message: `Orders are closed for today. The ordering window closes at ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM. Please place your order tomorrow between 8:00 AM and ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
       serverTime: now.toISOString(),
     });
   }

@@ -12,26 +12,29 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
+const OPEN_HOUR = 8; // 8:00 AM
 const DEADLINE_HOUR = 11; // 11:00 AM
 const DEADLINE_MINUTE = 0;
 
 // Set to true to disable the 11:00 AM ordering restriction (orders will be open 24/7)
-const DISABLE_DEADLINE = true;
+const DISABLE_DEADLINE = false;
 
 /**
- * Returns { isOpen, hoursLeft, minutesLeft, secondsLeft, totalSecondsLeft }
+ * Returns { isOpen, isTooEarly, hoursLeft, minutesLeft, secondsLeft, totalSecondsLeft }
  * based on the current local time vs. the deadline.
  */
 const computeTimeLeft = () => {
   const now = new Date();
+  
+  let openTime = new Date();
+  openTime.setHours(OPEN_HOUR, 0, 0, 0);
+
   let deadline = new Date();
   deadline.setHours(DEADLINE_HOUR, DEADLINE_MINUTE, 0, 0);
 
   let diffMs = deadline - now;
 
   if (DISABLE_DEADLINE) {
-    // If deadline is disabled, we keep ordering open 24/7.
-    // If past today's 11:00 AM, show countdown to tomorrow's 11:00 AM.
     if (diffMs <= 0) {
       deadline.setDate(deadline.getDate() + 1);
       diffMs = deadline - now;
@@ -39,6 +42,7 @@ const computeTimeLeft = () => {
     const totalSecs = Math.floor(diffMs / 1000);
     return {
       isOpen: true,
+      isTooEarly: false,
       hoursLeft: Math.floor(totalSecs / 3600),
       minutesLeft: Math.floor((totalSecs % 3600) / 60),
       secondsLeft: totalSecs % 60,
@@ -46,13 +50,18 @@ const computeTimeLeft = () => {
     };
   }
 
+  if (now < openTime) {
+    return { isOpen: false, isTooEarly: true, hoursLeft: 0, minutesLeft: 0, secondsLeft: 0, totalSecondsLeft: 0 };
+  }
+
   if (diffMs <= 0) {
-    return { isOpen: false, hoursLeft: 0, minutesLeft: 0, secondsLeft: 0, totalSecondsLeft: 0 };
+    return { isOpen: false, isTooEarly: false, hoursLeft: 0, minutesLeft: 0, secondsLeft: 0, totalSecondsLeft: 0 };
   }
 
   const totalSecs = Math.floor(diffMs / 1000);
   return {
     isOpen: true,
+    isTooEarly: false,
     hoursLeft: Math.floor(totalSecs / 3600),
     minutesLeft: Math.floor((totalSecs % 3600) / 60),
     secondsLeft: totalSecs % 60,
@@ -217,41 +226,48 @@ const Timer = ({ onStatusChange }) => {
 
   // ── Closed State ────────────────────────────────────────────────────────────
   if (!timeLeft.isOpen) {
+    const isEarly = timeLeft.isTooEarly;
+    
     return (
       <div className="relative overflow-hidden animate-fade-in">
         {/* Background glow */}
         <div className="absolute inset-0 rounded-2xl" style={{
-          background: "linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 100%)",
+          background: isEarly
+            ? "linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.02) 100%)"
+            : "linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 100%)",
         }} />
 
-        <div className="relative glass border border-red-500/20 rounded-2xl p-6 sm:p-8">
+        <div className={`relative glass border ${isEarly ? "border-blue-500/20" : "border-red-500/20"} rounded-2xl p-6 sm:p-8`}>
           <FloatingParticles />
 
           <div className="flex flex-col items-center text-center gap-4">
             {/* Icon */}
             <div className="relative">
-              <div className="absolute inset-0 bg-red-500/20 rounded-2xl blur-xl" />
-              <div className="relative w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                <span className="text-3xl">🚫</span>
+              <div className={`absolute inset-0 ${isEarly ? "bg-blue-500/20" : "bg-red-500/20"} rounded-2xl blur-xl`} />
+              <div className={`relative w-16 h-16 rounded-2xl ${isEarly ? "bg-blue-500/10 border-blue-500/20" : "bg-red-500/10 border-red-500/20"} border flex items-center justify-center`}>
+                <span className="text-3xl">{isEarly ? "🌅" : "🚫"}</span>
               </div>
             </div>
 
             {/* Text */}
             <div>
-              <p className="font-display text-lg sm:text-xl font-bold text-red-400">
-                Orders Closed for Today
+              <p className={`font-display text-lg sm:text-xl font-bold ${isEarly ? "text-blue-400" : "text-red-400"}`}>
+                {isEarly ? "Good Morning! We're closed." : "Orders Closed for Today"}
               </p>
               <p className="text-gray-500 text-sm mt-1.5">
-                Pre-ordering reopens tomorrow before{" "}
-                <span className="text-red-400/80 font-semibold">11:00 AM</span>
+                {isEarly ? (
+                  <>Ordering opens at <span className="text-blue-400/80 font-semibold">8:00 AM</span></>
+                ) : (
+                  <>Pre-ordering reopens tomorrow at <span className="text-red-400/80 font-semibold">8:00 AM</span></>
+                )}
               </p>
             </div>
 
             {/* Status pill */}
-            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/15 rounded-full px-4 py-1.5">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-red-400/80 text-xs font-semibold uppercase tracking-wider">
-                Closed
+            <div className={`flex items-center gap-2 ${isEarly ? "bg-blue-500/10 border-blue-500/15" : "bg-red-500/10 border-red-500/15"} border rounded-full px-4 py-1.5`}>
+              <div className={`w-2 h-2 rounded-full ${isEarly ? "bg-blue-500" : "bg-red-500"} animate-pulse`} />
+              <span className={`${isEarly ? "text-blue-400/80" : "text-red-400/80"} text-xs font-semibold uppercase tracking-wider`}>
+                {isEarly ? "Opening Soon" : "Closed"}
               </span>
             </div>
           </div>
