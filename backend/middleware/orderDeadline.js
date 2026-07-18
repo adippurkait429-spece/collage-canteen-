@@ -32,7 +32,7 @@ const checkOrderDeadline = (req, res, next) => {
   if (currentTotalMinutes < openTotalMinutes) {
     return res.status(403).json({
       success: false,
-      message: `Orders are not open yet. You can place orders between 8:00 AM and ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
+      message: `Orders are not open yet. You can place orders between 08:00 AM and ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
       serverTime: now.toISOString(),
     });
   }
@@ -40,7 +40,7 @@ const checkOrderDeadline = (req, res, next) => {
   if (currentTotalMinutes >= deadlineTotalMinutes) {
     return res.status(403).json({
       success: false,
-      message: `Orders are closed for today. The ordering window closes at ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM. Please place your order tomorrow between 8:00 AM and ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
+      message: `Orders are closed for today. The ordering window closes at ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM. Please place your order tomorrow between 08:00 AM and ${String(deadlineHour).padStart(2, "0")}:${String(deadlineMin).padStart(2, "0")} AM.`,
       serverTime: now.toISOString(),
     });
   }
