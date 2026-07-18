@@ -14,8 +14,8 @@
 // GKCEM (Greater Kolkata College Of Engineering & Management) canteen location.
 // Override via environment variables if the restaurant moves.
 const RESTAURANT_LOCATION = {
-  lat: parseFloat(process.env.RESTAURANT_LAT) || 22.346543,
-  lng: parseFloat(process.env.RESTAURANT_LNG) || 88.464149,
+  lat: parseFloat(process.env.RESTAURANT_LAT) || 22.345662499343057,
+  lng: parseFloat(process.env.RESTAURANT_LNG) || 88.463790742079,
 };
 
 // Maximum allowed distance for delivery (in kilometres)

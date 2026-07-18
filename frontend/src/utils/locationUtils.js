@@ -13,8 +13,8 @@
 // ── Restaurant Configuration ──────────────────────────────────────────────────
 // Must match backend/utils/distanceUtils.js
 export const RESTAURANT_LOCATION = {
-  lat: 22.346543,
-  lng: 88.464149,
+  lat: 22.345662499343057,
+  lng: 88.463790742079,
 };
 
 export const MAX_DELIVERY_RADIUS_KM = 5;
