@@ -307,10 +307,10 @@ const Timer = ({ onStatusChange }) => {
               <p className={`text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors duration-500
                 ${isUrgent ? "text-red-400" : "text-canteen-secondary"}`}
               >
-                Order Deadline
+                Order Window
               </p>
               <p className="text-[10px] text-gray-500 mt-0.5">
-                {isUrgent ? "Hurry! Closing soon" : "Place your order before"}
+                {isUrgent ? "Hurry! Closing soon" : "Place your order between"}
               </p>
             </div>
           </div>
@@ -325,10 +325,10 @@ const Timer = ({ onStatusChange }) => {
             <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors duration-500
               ${isUrgent ? "bg-red-500" : "bg-canteen-primary"}`}
             />
-            <span className={`text-sm sm:text-base font-bold font-display transition-colors duration-500
+            <span className={`text-sm sm:text-base font-bold font-display transition-colors duration-500 whitespace-nowrap
               ${isUrgent ? "text-red-400" : "text-canteen-primary"}`}
             >
-              11:00 AM
+              8:00 AM - 11:00 AM
             </span>
           </div>
         </div>
